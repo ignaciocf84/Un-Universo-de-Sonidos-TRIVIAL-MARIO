@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Un universo de sonidos - Trivial Musical PDI</title>
+    
+    <!-- CDNs requeridos -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Gorditas:wght@400;700&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        .font-gorditas {
+            font-family: 'Gorditas', cursive;
+        }
+        .font-nunito {
+            font-family: 'Nunito', sans-serif;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 2px solid rgba(255, 255, 255, 0.7);
+        }
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid rgba(226, 232, 240, 0.8);
+        }
+        @keyframes pulse-subtle {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+        .animate-pulse-subtle {
+            animation: pulse-subtle 1.5s infinite ease-in-out;
+        }
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-100 via-sky-100 to-amber-100 min-h-screen font-nunito text-slate-900 flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
+
+    <!-- ENCABEZADO CON IMAGEN AL DOBLE DE TAMAÑO (H-28 / H-32) -->
+    <header class="glass-nav sticky top-0 z-30 shadow-md px-4 py-3">
+        <div class="max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-4">
+            <div class="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
+                <!-- Imagen al doble de tamaño con borde redondeado y sombra destacada -->
+                <img src="https://lh3.googleusercontent.com/d/1WcYLN6brmU3dTIEacWTAEnThtIsjGkS5" 
+                     onerror="this.onerror=null; this.src='https://drive.google.com/uc?export=view&id=1WcYLN6brmU3dTIEacWTAEnThtIsjGkS5';"
+                     alt="Mario Director de Orquesta" 
+                     class="h-28 lg:h-32 w-auto object-contain rounded-2xl shadow-lg border-2 border-white bg-white/80 p-1 shrink-0 transition-transform hover:scale-105">
+                <div>
+                    <h1 class="font-gorditas text-3xl lg:text-4xl text-indigo-900 tracking-wide">UN UNIVERSO DE SONIDOS</h1>
+                    <p class="text-sm lg:text-base font-bold text-slate-600">Agrupaciones, Voces y Formas Musicales - PDI</p>
+                </div>
+            </div>
+
+            <!-- Botones de Acción Global -->
+            <div class="flex flex-wrap items-center justify-center gap-2">
+                <button onclick="toggleAudio()" id="btn-audio" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold px-4 py-2 rounded-xl text-sm transition-all flex items-center gap-2 border border-slate-300 shadow-sm">
+                    <i id="icon-audio" class="fa-solid fa-volume-high text-indigo-600"></i> <span id="label-audio">Sonido ON</span>
+                </button>
+                <button onclick="resetGamePrompt()" class="bg-amber-500 hover:bg-amber-600 text-white font-bold px-4 py-2 rounded-xl text-sm transition-all flex items-center gap-2 shadow-md">
+                    <i class="fa-solid fa-rotate-right"></i> Reiniciar Partida
+                </button>
+                <button onclick="showPodiumModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-2 rounded-xl text-sm transition-all flex items-center gap-2 shadow-md">
+                    <i class="fa-solid fa-trophy text-amber-300"></i> Clasificación / Podio
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- BARRA DE MARCADORES DE LOS 6 EQUIPOS -->
+    <section class="max-w-7xl mx-auto w-full px-4 mt-4">
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3" id="teams-container">
+            <!-- Equipos generados dinámicamente por JavaScript -->
+        </div>
+    </section>
+
+    <!-- CONTENIDO PRINCIPAL: VISTA 1 (GRID) O VISTA 2 (PREGUNTA ACTIVA) -->
+    <main class="max-w-7xl mx-auto w-full px-4 my-6 flex-grow">
+        
+        <!-- VISTA 1: PANEL GENERAL DE PREGUNTAS (GRID DE 20 TARJETAS) -->
+        <div id="view-grid" class="space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-center bg-white/70 p-4 rounded-2xl border border-white shadow-sm gap-2">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-shapes text-indigo-600 text-xl"></i>
+                    <h2 class="font-gorditas text-xl text-indigo-950">Panel General de Preguntas</h2>
+                </div>
+                <span id="progress-indicator" class="text-sm font-extrabold text-slate-700 bg-indigo-100 px-3 py-1 rounded-full border border-indigo-200">
+                    Completadas: 0 / 20
+                </span>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4" id="questions-grid">
+                <!-- 20 Tarjetas dinámicas creadas mediante JS -->
+            </div>
+        </div>
+
+        <!-- VISTA 2: PREGUNTA ACTIVA EN PANTALLA GRANDE PARA PDI -->
+        <div id="view-question" class="hidden space-y-5">
+            <!-- Barra Superior de Navegación de la Pregunta -->
+            <div class="flex flex-wrap justify-between items-center gap-3 glass-card p-4 rounded-2xl shadow-md">
+                <button onclick="showGridView()" class="bg-slate-700 hover:bg-slate-800 text-white font-bold px-4 py-2 rounded-xl text-base transition-all flex items-center gap-2 shadow">
+                    <i class="fa-solid fa-arrow-left"></i> Volver al Panel
+                </button>
+                
+                <div class="flex items-center gap-3">
+                    <span id="question-category-badge" class="px-4 py-1.5 rounded-full text-xs md:text-sm font-black uppercase tracking-wider bg-indigo-100 text-indigo-800 border border-indigo-300">
+                        Categoría
+                    </span>
+                    <span id="question-number-badge" class="font-gorditas text-lg md:text-xl text-indigo-900">
+                        Pregunta 1/20
+                    </span>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button onclick="navigateQuestion(-1)" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-900 font-extrabold px-3 py-2 rounded-xl text-sm transition">
+                        <i class="fa-solid fa-chevron-left"></i> Anterior
+                    </button>
+                    <button onclick="navigateQuestion(1)" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-900 font-extrabold px-3 py-2 rounded-xl text-sm transition">
+                        Siguiente <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tarjeta Principal de la Pregunta Activa -->
+            <div class="glass-card p-6 md:p-8 rounded-3xl shadow-xl space-y-6">
+                
+                <!-- SECCIÓN TEMPORIZADOR Y CONTROL -->
+                <div class="bg-slate-900 text-white p-4 rounded-2xl shadow-inner flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div class="flex items-center gap-4 w-full md:w-auto">
+                        <div class="bg-amber-500 text-slate-950 font-gorditas text-2xl md:text-3xl w-14 h-14 rounded-xl flex items-center justify-center shadow-lg shrink-0" id="timer-display">
+                            10
+                        </div>
+                        <div class="w-full md:w-64">
+                            <div class="flex justify-between text-xs font-extrabold text-slate-300 mb-1">
+                                <span>TIEMPO RESTANTE</span>
+                                <span id="timer-status">10s</span>
+                            </div>
+                            <div class="w-full bg-slate-800 h-4 rounded-full overflow-hidden p-0.5 border border-slate-700">
+                                <div id="timer-bar" class="bg-emerald-500 h-full rounded-full transition-all duration-1000 w-full"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 w-full md:w-auto justify-end">
+                        <button onclick="startTimer()" id="btn-start-timer" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black px-5 py-3 rounded-xl text-base md:text-lg transition-all shadow-lg flex items-center gap-2">
+                            <i class="fa-solid fa-play"></i> Iniciar Tiempo
+                        </button>
+                        <button onclick="pauseTimer()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-black px-4 py-3 rounded-xl text-base transition-all shadow-md">
+                            <i class="fa-solid fa-pause"></i>
+                        </button>
+                        <button onclick="resetTimer()" class="bg-slate-700 hover:bg-slate-600 text-white font-black px-4 py-3 rounded-xl text-base transition-all shadow-md">
+                            <i class="fa-solid fa-rotate-left"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Enunciado de la Pregunta (Tipografía Gigante PDI) -->
+                <div class="py-2">
+                    <h2 id="question-text" class="text-2xl md:text-3xl lg:text-4xl font-extrabold text-slate-900 leading-tight">
+                        ¿Texto de la pregunta activa?
+                    </h2>
+                </div>
+
+                <!-- Opciones de Respuesta A, B, C, D -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="options-container">
+                    <!-- Botones de opciones generados dinámicamente -->
+                </div>
+
+                <!-- PANEL DE EXPLICACIÓN Y SOLUCIÓN -->
+                <div id="explanation-box" class="hidden p-5 rounded-2xl border-2 transition-all duration-300 space-y-2">
+                    <div class="flex items-center gap-2 font-gorditas text-xl" id="explanation-title">
+                        <i class="fa-solid fa-lightbulb"></i> Explicación Educativa
+                    </div>
+                    <p id="explanation-text" class="text-lg md:text-xl font-bold leading-relaxed">
+                        Explicación técnica detallada.
+                    </p>
+                </div>
+
+                <!-- ASIGNACIÓN RÁPIDA DE PUNTOS A EQUIPOS EN PANTALLA DE PREGUNTA -->
+                <div class="bg-indigo-50/80 p-4 rounded-2xl border border-indigo-200 space-y-3">
+                    <span class="block text-sm md:text-base font-extrabold text-indigo-900 uppercase tracking-wider">
+                        <i class="fa-solid fa-award text-indigo-600"></i> Asignar +10 Puntos al Equipo Ganador:
+                    </span>
+                    <div class="grid grid-cols-3 sm:grid-cols-6 gap-2" id="quick-award-buttons">
+                        <!-- Generados con JS para los 6 equipos -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- MODAL DE CLASIFICACIÓN / PODIO FINAL CON CONFETI -->
+    <div id="podium-modal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-card max-w-2xl w-full p-6 md:p-8 rounded-3xl shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+            <div class="text-center space-y-2">
+                <h2 class="font-gorditas text-3xl md:text-4xl text-indigo-950">🏆 CLASIFICACIÓN Y PODIO</h2>
+                <p class="text-slate-600 font-bold">Puntuación final del aula por equipos</p>
+            </div>
+
+            <div class="space-y-3" id="podium-list">
+                <!-- Lista ordenada de mayor a menor puntuación -->
+            </div>
+
+            <div class="flex justify-center gap-4 pt-4 border-t border-slate-200">
+                <button onclick="fireConfettiEffect()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-black px-6 py-3 rounded-2xl text-lg shadow-lg flex items-center gap-2 transition">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Lanza Confeti
+                </button>
+                <button onclick="closePodiumModal()" class="bg-slate-800 hover:bg-slate-900 text-white font-black px-6 py-3 rounded-2xl text-lg shadow-lg transition">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER LIGERO -->
+    <footer class="text-center py-4 text-xs font-bold text-slate-500">
+        Un universo de sonidos • Diseñado para Pizarras Digitales Interactivas (PDI)
+    </footer>
+
+    <!-- SCRIPT PRINCIPAL Y LÓGICA DE JUEGO -->
+    <script>
+        /* ==========================================================================
+           1. BASE DE DATOS COMPLETA DE PREGUNTAS
+           ========================================================================== */
+        const originalQuestionsDatabase = [
+            {
+                id: 1,
+                category: "Agrupaciones Instrumental",
+                categoryColor: "bg-blue-100 text-blue-800 border-blue-300",
+                question: "¿Cómo se llama la agrupación reducida donde cada integrante toca una parte única?",
+                options: ["Orquesta sinfónica", "Música de cámara", "Banda sinfónica", "Coro sinfónico"],
+                answer: "Música de cámara",
+                explanation: "La música de cámara es interpretada por un grupo reducido de músicos donde cada integrante ejecuta una parte única, habitualmente sin director."
+            },
+            {
+                id: 2,
+                category: "Agrupaciones Instrumental",
+                categoryColor: "bg-blue-100 text-blue-800 border-blue-300",
+                question: "¿Qué agrupación destaca principalmente por el uso de instrumentos de viento y percusión?",
+                options: ["Big band", "Orquesta sinfónica", "Banda sinfónica", "Cuarteto de cuerda"],
+                answer: "Banda sinfónica",
+                explanation: "La banda sinfónica destaca principalmente por el empleo de familias de viento (madera y metal) junto a una amplia sección de percusión."
+            },
+            {
+                id: 3,
+                category: "Agrupaciones Instrumental",
+                categoryColor: "bg-blue-100 text-blue-800 border-blue-300",
+                question: "¿Qué origen y estilo caracterizan a una agrupación de tipo Big band?",
+                options: ["Origen europeo y estilo clásico", "Origen estadounidense y estilo jazz", "Origen latino y estilo popular", "Origen africano y estilo folclórico"],
+                answer: "Origen estadounidense y estilo jazz",
+                explanation: "La Big Band se originó en Estados Unidos durante los años 1920-1930 y es la formación típica del estilo jazz."
+            },
+            {
+                id: 4,
+                category: "Agrupaciones Vocales",
+                categoryColor: "bg-purple-100 text-purple-800 border-purple-300",
+                question: "¿Cómo se denomina la interpretación de un coro que canta sin acompañamiento instrumental?",
+                options: ["Interpretación a viva voz", "Interpretación a capella", "Interpretación en directo", "Voz blanca"],
+                answer: "Interpretación a capella",
+                explanation: "Cantar 'a capella' significa realizar la ejecución vocal prescindiendo por completo de acompañamiento instrumental."
+            },
+            {
+                id: 5,
+                category: "Agrupaciones Vocales",
+                categoryColor: "bg-purple-100 text-purple-800 border-purple-300",
+                question: "¿Qué número de cantantes integra aproximadamente un coro de cámara?",
+                options: ["De 1 a 5 cantantes", "De 30 a 60 cantantes", "De 10 a 25 cantantes", "Más de 100 cantantes"],
+                answer: "De 10 a 25 cantantes",
+                explanation: "Un coro de cámara es un conjunto vocal reducido, integrado habitualmente por entre 10 y 25 intérpretes."
+            },
+            {
+                id: 6,
+                category: "Agrupaciones Vocales",
+                categoryColor: "bg-purple-100 text-purple-800 border-purple-300",
+                question: "¿Cómo se clasifica a una agrupación vocal de tamaño medio formada por entre 30 y 60 integrantes?",
+                options: ["Coro de cámara", "Coro sinfónico", "Coral", "Solista"],
+                answer: "Coral",
+                explanation: "Una coral o masa coral estándar es una agrupación de tamaño medio compuesta habitualmente por entre 30 y 60 cantantes."
+            },
+            {
+                id: 7,
+                category: "Agrupaciones Vocales",
+                categoryColor: "bg-purple-100 text-purple-800 border-purple-300",
+                question: "¿Cómo se llama la gran masa vocal que puede superar los 100 integrantes?",
+                options: ["Coro mixto", "Coro sinfónico", "Coral", "Coro de cámara"],
+                answer: "Coro sinfónico",
+                explanation: "El coro sinfónico es una gran masa vocal que puede superar los 100 miembros, concebida para abordar grandes obras junto a orquestas."
+            },
+            {
+                id: 8,
+                category: "Agrupaciones Vocales",
+                categoryColor: "bg-purple-100 text-purple-800 border-purple-300",
+                question: "¿Qué tipo de agrupación vocal combina voces masculinas y femeninas?",
+                options: ["Coro mixto", "Coro de voces iguales", "Coro de voces blancas", "Coro de cámara"],
+                answer: "Coro mixto",
+                explanation: "Un coro mixto reúne tanto voces femeninas (sopranos, contraltos) como masculinas (tenores, bajos)."
+            },
+            {
+                id: 9,
+                category: "Agrupaciones Vocales",
+                categoryColor: "bg-purple-100 text-purple-800 border-purple-300",
+                question: "¿Cómo se llama el coro formado por niños y niñas con voces agudas y timbres claros?",
+                options: ["Voces femeninas", "Voces graves", "Voces blancas", "Voces iguales"],
+                answer: "Voces blancas",
+                explanation: "Se denomina voces blancas a los coros infantiles caracterizados por su registro agudo y su timbre claro y cristalino."
+            },
+            {
+                id: 10,
+                category: "Tipos de Voces",
+                categoryColor: "bg-emerald-100 text-emerald-800 border-emerald-300",
+                question: "¿Cuál es la voz femenina o de niños más aguda?",
+                options: ["Mezzosoprano", "Contralto", "Soprano", "Tenor"],
+                answer: "Soprano",
+                explanation: "La voz de soprano representa el registro más agudo dentro de las voces femeninas e infantiles."
+            },
+            {
+                id: 11,
+                category: "Tipos de Voces",
+                categoryColor: "bg-emerald-100 text-emerald-800 border-emerald-300",
+                question: "¿Cuál es la voz femenina que ocupa el registro intermedio?",
+                options: ["Soprano", "Mezzosoprano", "Contralto", "Barítono"],
+                answer: "Mezzosoprano",
+                explanation: "La mezzosoprano ocupa el registro vocal intermedio femenino, entre la soprano y la contralto."
+            },
+            {
+                id: 12,
+                category: "Tipos de Voces",
+                categoryColor: "bg-emerald-100 text-emerald-800 border-emerald-300",
+                question: "¿Cómo se denomina a la voz femenina más grave?",
+                options: ["Contralto", "Mezzosoprano", "Barítono", "Soprano"],
+                answer: "Contralto",
+                explanation: "La contralto es la voz femenina de registro más grave, caracterizada por su calidez y sonoridad oscura."
+            },
+            {
+                id: 13,
+                category: "Tipos de Voces",
+                categoryColor: "bg-emerald-100 text-emerald-800 border-emerald-300",
+                question: "¿Cuál es la voz masculina más aguda?",
+                options: ["Barítono", "Tenor", "Bajo", "Soprano"],
+                answer: "Tenor",
+                explanation: "El tenor es el registro vocal masculino natural más agudo en la clasificación clásica."
+            },
+            {
+                id: 14,
+                category: "Tipos de Voces",
+                categoryColor: "bg-emerald-100 text-emerald-800 border-emerald-300",
+                question: "¿Qué registro corresponde a la voz masculina intermedia?",
+                options: ["Bajo", "Tenor", "Barítono", "Contralto"],
+                answer: "Barítono",
+                explanation: "El barítono es el registro intermedio masculino, situado entre la agudeza del tenor y la profundidad del bajo."
+            },
+            {
+                id: 15,
+                category: "Tipos de Voces",
+                categoryColor: "bg-emerald-100 text-emerald-800 border-emerald-300",
+                question: "¿Cómo se clasifica a la voz masculina más grave?",
+                options: ["Barítono", "Bajo", "Tenor", "Mezzosoprano"],
+                answer: "Bajo",
+                explanation: "La voz de bajo es la clasificación masculina de sonido más grave y profundo."
+            },
+            {
+                id: 16,
+                category: "Formas Musicales",
+                categoryColor: "bg-amber-100 text-amber-800 border-amber-300",
+                question: "¿Para cuántos instrumentos solistas está escrita habitualmente una sonata?",
+                options: ["Para toda la orquesta", "Para tres o cuatro instrumentos", "Para uno o dos instrumentos", "Solo para coro y piano"],
+                answer: "Para uno o dos instrumentos",
+                explanation: "La sonata clásica está concebida instrumentalmente para uno (como piano solo) o dos instrumentos (como violín y piano)."
+            },
+            {
+                id: 17,
+                category: "Formas Musicales",
+                categoryColor: "bg-amber-100 text-amber-800 border-amber-300",
+                question: "¿Qué forma musical es una gran composición para orquesta dividida en varios movimientos?",
+                options: ["Sonata", "Suite", "Sinfonía", "Poema sinfónico"],
+                answer: "Sinfonía",
+                explanation: "La sinfonía es una composición orquestal de gran envergadura dividida habitualmente en 4 movimientos."
+            },
+            {
+                id: 18,
+                category: "Formas Musicales",
+                categoryColor: "bg-amber-100 text-amber-800 border-amber-300",
+                question: "¿En qué forma musical un instrumento solista contrasta y dialoga con la orquesta?",
+                options: ["Concierto", "Suite", "Sonata", "Poema sinfónico"],
+                answer: "Concierto",
+                explanation: "El concierto se basa en el diálogo y contraste virtuosístico entre un instrumento solista y la orquesta."
+            },
+            {
+                id: 19,
+                category: "Formas Musicales",
+                categoryColor: "bg-amber-100 text-amber-800 border-amber-300",
+                question: "¿Cómo se llama la serie o colección de varias piezas breves o danzas que se tocan seguidas?",
+                options: ["Poema sinfónico", "Suite", "Sinfonía", "Concierto"],
+                answer: "Suite",
+                explanation: "La suite es un conjunto ordenado de piezas instrumentales o danzas independientes interpretadas de forma consecutiva."
+            },
+            {
+                id: 20,
+                category: "Formas Musicales",
+                categoryColor: "bg-amber-100 text-amber-800 border-amber-300",
+                question: "¿Qué obra de música programática en un solo movimiento cuenta una historia inspirada en la literatura o el arte?",
+                options: ["Suite", "Sonata", "Poema sinfónico", "Concierto"],
+                answer: "Poema sinfónico",
+                explanation: "El poema sinfónico es una obra orquestal en un solo movimiento inspirada en conceptos poéticos, literarios o pictóricos (música programática)."
+            }
+        ];
+
+        /* ==========================================================================
+           2. ESTADO DE LA PARTIDA Y EQUIPOS
+           ========================================================================== */
+        let teams = [
+            { id: 1, name: "Equipo 1", score: 0, color: "bg-rose-500 text-white", border: "border-rose-400" },
+            { id: 2, name: "Equipo 2", score: 0, color: "bg-indigo-500 text-white", border: "border-indigo-400" },
+            { id: 3, name: "Equipo 3", score: 0, color: "bg-emerald-500 text-white", border: "border-emerald-400" },
+            { id: 4, name: "Equipo 4", score: 0, color: "bg-amber-500 text-white", border: "border-amber-400" },
+            { id: 5, name: "Equipo 5", score: 0, color: "bg-purple-500 text-white", border: "border-purple-400" },
+            { id: 6, name: "Equipo 6", score: 0, color: "bg-cyan-500 text-white", border: "border-cyan-400" }
+        ];
+
+        let activeQuestionsList = [];
+        let currentQuestionIndex = 0;
+        let timerInterval = null;
+        let timerSeconds = 10;
+        let isTimerRunning = false;
+        let soundEnabled = true;
+
+        /* ==========================================================================
+           3. SINTETIZADOR WEB AUDIO API (EFECTOS DE SONIDO SINTETIZADOS)
+           ========================================================================== */
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function toggleAudio() {
+            soundEnabled = !soundEnabled;
+            const btn = document.getElementById('btn-audio');
+            const icon = document.getElementById('icon-audio');
+            const label = document.getElementById('label-audio');
+
+            if (soundEnabled) {
+                icon.className = "fa-solid fa-volume-high text-indigo-600";
+                label.innerText = "Sonido ON";
+                btn.classList.remove('bg-slate-300');
+                btn.classList.add('bg-slate-200');
+                playClickSound();
+            } else {
+                icon.className = "fa-solid fa-volume-xmark text-rose-600";
+                label.innerText = "Mute";
+                btn.classList.add('bg-slate-300');
+            }
+        }
+
+        function playClickSound() {
+            if (!soundEnabled) return;
+            initAudio();
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.05);
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.05);
+            } catch(e){}
+        }
+
+        function playTickSound() {
+            if (!soundEnabled) return;
+            initAudio();
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.04);
+            } catch(e){}
+        }
+
+        function playTimeoutSound() {
+            if (!soundEnabled) return;
+            initAudio();
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(180, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(130, audioCtx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.4);
+            } catch(e){}
+        }
+
+        function playCorrectSound() {
+            if (!soundEnabled) return;
+            initAudio();
+            try {
+                const now = audioCtx.currentTime;
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, idx) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+                    gain.gain.setValueAtTime(0.2, now + idx * 0.08);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.25);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now + idx * 0.08);
+                    osc.stop(now + idx * 0.08 + 0.25);
+                });
+            } catch(e){}
+        }
+
+        function playWrongSound() {
+            if (!soundEnabled) return;
+            initAudio();
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(160, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            } catch(e){}
+        }
+
+        function playPointSound() {
+            if (!soundEnabled) return;
+            initAudio();
+            try {
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(987.77, now);
+                osc.frequency.setValueAtTime(1318.51, now + 0.08);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.25);
+            } catch(e){}
+        }
+
+        function playVictorySound() {
+            if (!soundEnabled) return;
+            initAudio();
+            try {
+                const now = audioCtx.currentTime;
+                const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+                notes.forEach((freq, idx) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.1);
+                    gain.gain.setValueAtTime(0.25, now + idx * 0.1);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.1 + 0.4);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now + idx * 0.1);
+                    osc.stop(now + idx * 0.1 + 0.4);
+                });
+            } catch(e){}
+        }
+
+        /* ==========================================================================
+           4. ALGORITMO FISHER-YATES SHUFFLE
+           ========================================================================== */
+        function shuffleArray(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        /* ==========================================================================
+           5. INICIALIZACIÓN Y CONTROL DEL JUEGO
+           ========================================================================== */
+        function initGame() {
+            const shuffledDb = shuffleArray(originalQuestionsDatabase);
+            
+            activeQuestionsList = shuffledDb.slice(0, 20).map((q, idx) => {
+                const shuffledOptions = shuffleArray(q.options);
+                return {
+                    ...q,
+                    displayIndex: idx + 1,
+                    shuffledOptions: shuffledOptions,
+                    isCompleted: false,
+                    selectedOption: null
+                };
+            });
+
+            renderScoreboard();
+            renderGrid();
+            showGridView();
+        }
+
+        function resetGamePrompt() {
+            playClickSound();
+            if (confirm("¿Deseas reiniciar la partida? Se restaurarán las 20 preguntas al azar y la puntuación de los equipos.")) {
+                teams.forEach(t => t.score = 0);
+                initGame();
+            }
+        }
+
+        /* ==========================================================================
+           6. RENDERIZADO DEL MARCADOR DE 6 EQUIPOS
+           ========================================================================== */
+        function renderScoreboard() {
+            const container = document.getElementById('teams-container');
+            container.innerHTML = '';
+
+            teams.forEach((team, index) => {
+                const card = document.createElement('div');
+                card.className = `glass-card p-3 rounded-2xl shadow-md border-t-4 ${team.border} flex flex-col justify-between items-center text-center space-y-2 transition-all hover:scale-105`;
+                
+                card.innerHTML = `
+                    <div class="w-full flex items-center justify-between gap-1">
+                        <span class="w-2.5 h-2.5 rounded-full ${team.color}"></span>
+                        <input type="text" value="${team.name}" onchange="updateTeamName(${index}, this.value)" 
+                            class="font-gorditas text-sm lg:text-base text-slate-900 bg-transparent text-center font-bold focus:bg-white focus:outline-indigo-500 rounded px-1 w-full border-b border-transparent hover:border-slate-300">
+                    </div>
+                    <div class="font-gorditas text-2xl lg:text-3xl text-slate-900 tracking-tight" id="score-team-${index}">
+                        ${team.score} <span class="text-xs font-sans text-slate-500 font-bold">pts</span>
+                    </div>
+                    <div class="flex items-center justify-center gap-1 w-full">
+                        <button onclick="adjustScore(${index}, 10)" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-black text-xs px-2 py-1 rounded-lg transition shadow-sm">+10</button>
+                        <button onclick="adjustScore(${index}, 5)" class="bg-sky-100 hover:bg-sky-200 text-sky-800 font-black text-xs px-2 py-1 rounded-lg transition shadow-sm">+5</button>
+                        <button onclick="adjustScore(${index}, -5)" class="bg-rose-100 hover:bg-rose-200 text-rose-800 font-black text-xs px-2 py-1 rounded-lg transition shadow-sm">-5</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function updateTeamName(index, newName) {
+            if (newName.trim() !== '') {
+                teams[index].name = newName.trim();
+                renderQuickAwardButtons();
+            }
+        }
+
+        function adjustScore(index, points) {
+            playPointSound();
+            teams[index].score += points;
+            if (teams[index].score < 0) teams[index].score = 0;
+            document.getElementById(`score-team-${index}`).innerHTML = `${teams[index].score} <span class="text-xs font-sans text-slate-500 font-bold">pts</span>`;
+        }
+
+        /* ==========================================================================
+           7. VISTA 1: GRID GENERAL DE PREGUNTAS
+           ========================================================================== */
+        function renderGrid() {
+            const grid = document.getElementById('questions-grid');
+            grid.innerHTML = '';
+
+            let completedCount = 0;
+
+            activeQuestionsList.forEach((q, idx) => {
+                if (q.isCompleted) completedCount++;
+
+                const card = document.createElement('div');
+                card.onclick = () => { playClickSound(); openQuestion(idx); };
+
+                const completedStyles = q.isCompleted 
+                    ? "bg-emerald-500/10 border-emerald-400 ring-2 ring-emerald-400/40 opacity-90" 
+                    : "glass-card border-white hover:border-indigo-400 hover:shadow-xl hover:-translate-y-1";
+
+                card.className = `p-4 rounded-2xl shadow-md cursor-pointer transition-all duration-200 relative flex flex-col justify-between h-36 border-2 ${completedStyles}`;
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <span class="font-gorditas text-xl md:text-2xl text-indigo-950">#${q.displayIndex}</span>
+                        ${q.isCompleted 
+                            ? '<span class="bg-emerald-500 text-white w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shadow"><i class="fa-solid fa-check"></i></span>' 
+                            : '<span class="bg-indigo-100 text-indigo-800 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"><i class="fa-solid fa-play text-indigo-600"></i></span>'}
+                    </div>
+                    <div>
+                        <span class="text-[10px] md:text-xs font-black uppercase px-2 py-0.5 rounded-md border ${q.categoryColor} inline-block mb-1">
+                            ${q.category}
+                        </span>
+                        <p class="text-xs font-bold text-slate-700 line-clamp-2">
+                            ${q.question}
+                        </p>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            document.getElementById('progress-indicator').innerText = `Completadas: ${completedCount} / 20`;
+        }
+
+        function showGridView() {
+            stopTimer();
+            document.getElementById('view-grid').classList.remove('hidden');
+            document.getElementById('view-question').classList.add('hidden');
+            renderGrid();
+        }
+
+        /* ==========================================================================
+           8. VISTA 2: PREGUNTA ACTIVA Y TEMPORIZADOR DE 10 SEGUNDOS
+           ========================================================================== */
+        function openQuestion(index) {
+            currentQuestionIndex = index;
+            const q = activeQuestionsList[index];
+
+            document.getElementById('view-grid').classList.add('hidden');
+            document.getElementById('view-question').classList.remove('hidden');
+
+            document.getElementById('question-number-badge').innerText = `Pregunta ${q.displayIndex} / 20`;
+            document.getElementById('question-category-badge').innerText = q.category;
+            document.getElementById('question-category-badge').className = `px-4 py-1.5 rounded-full text-xs md:text-sm font-black uppercase tracking-wider border ${q.categoryColor}`;
+
+            document.getElementById('question-text').innerText = q.question;
+
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            const optionLetters = ['A', 'B', 'C', 'D'];
+
+            q.shuffledOptions.forEach((optText, optIdx) => {
+                const letter = optionLetters[optIdx];
+                const btn = document.createElement('button');
+                btn.className = `option-btn w-full text-left p-4 md:p-5 lg:p-6 rounded-2xl border-2 border-slate-200 bg-white hover:bg-indigo-50 hover:border-indigo-300 font-extrabold text-lg md:text-xl lg:text-2xl text-slate-800 shadow-sm transition-all flex items-center gap-4`;
+                btn.onclick = () => handleOptionClick(optIdx, btn);
+
+                btn.innerHTML = `
+                    <span class="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-indigo-100 text-indigo-900 font-gorditas flex items-center justify-center shrink-0 border border-indigo-200">
+                        ${letter}
+                    </span>
+                    <span class="flex-grow">${optText}</span>
+                    <span class="icon-status"></span>
+                `;
+                optionsContainer.appendChild(btn);
+            });
+
+            document.getElementById('explanation-box').classList.add('hidden');
+            renderQuickAwardButtons();
+            resetTimer();
+
+            if (q.selectedOption !== null || q.isCompleted) {
+                revealSolution();
+            }
+        }
+
+        function handleOptionClick(optIndex, clickedBtn) {
+            const q = activeQuestionsList[currentQuestionIndex];
+            if (q.selectedOption !== null) return;
+
+            stopTimer();
+            q.selectedOption = optIndex;
+
+            const selectedText = q.shuffledOptions[optIndex];
+            const isCorrect = (selectedText === q.answer);
+
+            if (isCorrect) {
+                playCorrectSound();
+            } else {
+                playWrongSound();
+            }
+
+            revealSolution();
+        }
+
+        function revealSolution() {
+            const q = activeQuestionsList[currentQuestionIndex];
+            const buttons = document.querySelectorAll('.option-btn');
+            
+            buttons.forEach((btn, idx) => {
+                btn.disabled = true;
+                const text = q.shuffledOptions[idx];
+                const iconSpan = btn.querySelector('.icon-status');
+
+                if (text === q.answer) {
+                    btn.className = "w-full text-left p-4 md:p-5 lg:p-6 rounded-2xl border-2 border-emerald-500 bg-emerald-50 font-extrabold text-lg md:text-xl lg:text-2xl text-emerald-950 shadow-md flex items-center gap-4";
+                    iconSpan.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600 text-2xl"></i>`;
+                } else if (q.selectedOption === idx) {
+                    btn.className = "w-full text-left p-4 md:p-5 lg:p-6 rounded-2xl border-2 border-rose-500 bg-rose-50 font-extrabold text-lg md:text-xl lg:text-2xl text-rose-950 shadow-md flex items-center gap-4";
+                    iconSpan.innerHTML = `<i class="fa-solid fa-circle-xmark text-rose-600 text-2xl"></i>`;
+                } else {
+                    btn.className = "w-full text-left p-4 md:p-5 lg:p-6 rounded-2xl border-2 border-slate-200 bg-slate-100 opacity-60 font-bold text-lg md:text-xl lg:text-2xl text-slate-700 flex items-center gap-4";
+                }
+            });
+
+            const expBox = document.getElementById('explanation-box');
+            const expTitle = document.getElementById('explanation-title');
+            const expText = document.getElementById('explanation-text');
+
+            expBox.classList.remove('hidden');
+            expBox.className = "p-5 rounded-2xl border-2 bg-indigo-50/90 border-indigo-300 text-indigo-950 space-y-2 animate-pulse-subtle";
+            expTitle.innerHTML = `<i class="fa-solid fa-lightbulb text-amber-500"></i> Solución: <strong>${q.answer}</strong>`;
+            expText.innerText = q.explanation;
+        }
+
+        function renderQuickAwardButtons() {
+            const container = document.getElementById('quick-award-buttons');
+            container.innerHTML = '';
+
+            teams.forEach((team, idx) => {
+                const btn = document.createElement('button');
+                btn.className = `${team.color} hover:brightness-110 font-extrabold py-2 px-3 rounded-xl text-sm transition shadow flex items-center justify-center gap-1.5`;
+                btn.onclick = () => awardPointsToTeam(idx);
+                btn.innerHTML = `<i class="fa-solid fa-plus text-xs"></i> ${team.name}`;
+                container.appendChild(btn);
+            });
+        }
+
+        function awardPointsToTeam(teamIndex) {
+            adjustScore(teamIndex, 10);
+            const q = activeQuestionsList[currentQuestionIndex];
+            q.isCompleted = true;
+            revealSolution();
+        }
+
+        function navigateQuestion(direction) {
+            playClickSound();
+            let newIndex = currentQuestionIndex + direction;
+            if (newIndex < 0) newIndex = activeQuestionsList.length - 1;
+            if (newIndex >= activeQuestionsList.length) newIndex = 0;
+            openQuestion(newIndex);
+        }
+
+        /* ==========================================================================
+           9. TEMPORIZADOR SONORO (10 SEGUNDOS)
+           ========================================================================== */
+        function startTimer() {
+            if (isTimerRunning) return;
+            initAudio();
+            isTimerRunning = true;
+            document.getElementById('btn-start-timer').classList.add('opacity-50');
+
+            timerInterval = setInterval(() => {
+                timerSeconds--;
+                updateTimerUI();
+
+                if (timerSeconds <= 3 && timerSeconds > 0) {
+                    playTickSound();
+                }
+
+                if (timerSeconds <= 0) {
+                    stopTimer();
+                    playTimeoutSound();
+                    revealSolution();
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            playClickSound();
+            stopTimer();
+        }
+
+        function resetTimer() {
+            stopTimer();
+            timerSeconds = 10;
+            updateTimerUI();
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            const btn = document.getElementById('btn-start-timer');
+            if (btn) btn.classList.remove('opacity-50');
+        }
+
+        function updateTimerUI() {
+            const display = document.getElementById('timer-display');
+            const status = document.getElementById('timer-status');
+            const bar = document.getElementById('timer-bar');
+
+            display.innerText = timerSeconds;
+            status.innerText = `${timerSeconds}s`;
+
+            const percentage = (timerSeconds / 10) * 100;
+            bar.style.width = `${percentage}%`;
+
+            if (timerSeconds > 6) {
+                bar.className = "bg-emerald-500 h-full rounded-full transition-all duration-1000";
+                display.className = "bg-emerald-500 text-slate-950 font-gorditas text-2xl md:text-3xl w-14 h-14 rounded-xl flex items-center justify-center shadow-lg shrink-0";
+            } else if (timerSeconds > 3) {
+                bar.className = "bg-amber-500 h-full rounded-full transition-all duration-1000";
+                display.className = "bg-amber-500 text-slate-950 font-gorditas text-2xl md:text-3xl w-14 h-14 rounded-xl flex items-center justify-center shadow-lg shrink-0";
+            } else {
+                bar.className = "bg-rose-500 h-full rounded-full transition-all duration-1000 animate-pulse";
+                display.className = "bg-rose-500 text-white font-gorditas text-2xl md:text-3xl w-14 h-14 rounded-xl flex items-center justify-center shadow-lg shrink-0";
+            }
+        }
+
+        /* ==========================================================================
+           10. CLASIFICACIÓN / PODIO Y EFECTO CONFETI
+           ========================================================================== */
+        function showPodiumModal() {
+            playVictorySound();
+            fireConfettiEffect();
+
+            const modal = document.getElementById('podium-modal');
+            const list = document.getElementById('podium-list');
+            list.innerHTML = '';
+
+            const sortedTeams = [...teams].sort((a, b) => b.score - a.score);
+
+            const medals = ['🏆', '🥈', '🥉', '4º', '5º', '6º'];
+            const rankColors = [
+                'bg-amber-100 border-amber-300 text-amber-950',
+                'bg-slate-200 border-slate-400 text-slate-900',
+                'bg-amber-800/10 border-amber-600/40 text-amber-900',
+                'bg-slate-50 border-slate-200 text-slate-800',
+                'bg-slate-50 border-slate-200 text-slate-800',
+                'bg-slate-50 border-slate-200 text-slate-800'
+            ];
+
+            sortedTeams.forEach((team, index) => {
+                const item = document.createElement('div');
+                item.className = `p-4 rounded-2xl border-2 ${rankColors[index]} flex items-center justify-between shadow-sm`;
+
+                item.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl font-gorditas">${medals[index]}</span>
+                        <span class="font-gorditas text-lg md:text-xl">${team.name}</span>
+                    </div>
+                    <div class="font-gorditas text-2xl">
+                        ${team.score} <span class="text-xs font-sans font-bold">pts</span>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+
+            modal.classList.remove('hidden');
+        }
+
+        function closePodiumModal() {
+            playClickSound();
+            document.getElementById('podium-modal').classList.add('hidden');
+        }
+
+        function fireConfettiEffect() {
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 120,
+                    spread: 80,
+                    origin: { y: 0.6 }
+                });
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initGame();
+        });
+    </script>
+</body>
+</html>
